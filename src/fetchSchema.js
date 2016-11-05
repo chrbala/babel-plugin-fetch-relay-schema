@@ -24,8 +24,6 @@ var error = err => {
 	process.exit(1);
 }
 
-
-
 fetch(url, {
     method: 'POST',
     headers: {
