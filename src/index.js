@@ -25,14 +25,49 @@ var validate = function(schema) {
   }
 }
 
-var schemaBuffer
-try {
-	schemaBuffer = exec('node', [require.resolve('./fetchSchema'), requireGraphQlConfig()]);	
-} catch (e) {
-	throw new Error(chalk.red('Error fetching schema: ') + e.message);
+var fetchSchema = () => {
+	var schemaBuffer;
+	try {
+		schemaBuffer = exec('node', [require.resolve('./fetchSchema'), requireGraphQlConfig()]);	
+	} catch (e) {
+		throw new Error(chalk.red('Error fetching schema: ') + e.message);
+	}
+
+	var schema = JSON.parse(schemaBuffer.toString('utf8'));	
+	validate(schema);
+
+	return schema;
 }
 
-var schema = JSON.parse(schemaBuffer.toString('utf8'));	
-validate(schema);
+function fetchRelaySchemaDevPlugin() {
+	var PluginBuilder = () => {
+		var cache = null;
+		var cacheTime = 0;
+		return () => {
+			var TTL = process.env.GRAPHQL_SCHEMA_CACHE_TTL;
+			if (Date.now() - cacheTime > TTL) {
+				cache = getBabelRelayPlugin(fetchSchema().data).apply(null, arguments);
+				cacheTime = Date.now();
+			}
+			return cache.visitor;
+		}
+	}
 
-module.exports = getBabelRelayPlugin(schema.data);
+	var plugin = PluginBuilder();
+	var Program = plugin().Program;
+	
+	return {
+		visitor: {
+			Program,
+			TaggedTemplateExpression: function() {
+				var TaggedTemplateExpression = plugin().TaggedTemplateExpression;
+				return TaggedTemplateExpression.apply(null, arguments);
+			}
+		}
+	};
+};
+
+module.exports = process.env.GRAPHQL_SCHEMA_CACHE_TTL
+	? fetchRelaySchemaDevPlugin
+	: getBabelRelayPlugin(fetchSchema().data)
+;
