@@ -1,20 +1,24 @@
 {
   "name": "babel-plugin-fetch-relay-schema",
-  "version": "0.0.3",
+  "version": "0.1.0",
   "description": "Fetch relay schema from a URL.",
   "main": "src/index.js",
   "repository": {
     "url": "https://github.com/chrbala/babel-plugin-fetch-relay-schema",
     "type": "git"
   },
+  "scripts": {
+    "generate": "node src/generateSchema",
+    "index": "node src"
+  },
   "author": "Chris Bala",
   "license": "MIT",
   "dependencies": {
     "chalk": "^1.1.3",
-    "graphql": "^0.7.2",
     "node-fetch": "^1.6.3"
   },
   "peerDependencies": {
-  	"babel-relay-plugin": "<1.0.0"
+    "babel-relay-plugin": "<1.0.0",
+    "graphql": "<1.0.0"
   }
 }

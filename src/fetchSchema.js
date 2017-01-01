@@ -5,7 +5,7 @@ var url = process.argv[2];
 
 const TIMEOUT_MS = 30000;
 var timeout = setTimeout(() => {
-	console.log('Fetch timed out.');
+	console.error('Fetch timed out.');
 	process.exit(1);
 }, TIMEOUT_MS);
 
@@ -20,7 +20,7 @@ var success = response =>
 		.then(() => clearTimeout(timeout))
 ;
 var error = err => {
-	console.log(err.message);
+	console.error(err.message);
 	process.exit(1);
 }
 
