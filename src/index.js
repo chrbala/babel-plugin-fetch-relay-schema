@@ -1,6 +1,6 @@
 var chalk = require('chalk');
 
-var exec = require('child_process').execFileSync;
+var exec = require('child_process').execSync;
 var getBabelRelayPlugin = require('babel-relay-plugin');
 var graphQlutilities = require('graphql/utilities');
 var join = require('path').join;
@@ -25,9 +25,10 @@ var fetchSchema = () => {
 	var getSchemaBuffer;
 	if (path) {
 		var fullPath = join(process.cwd(), path);
-		getSchemaBuffer = () => exec('node', [require.resolve('./generateSchema'), fullPath]);
+		var env = Object.assign({}, process.env, { GRAPHQL_CYCLE_BLOCK: 'true' });
+		getSchemaBuffer = () => exec(`node ${require.resolve('./generateSchema')} ${fullPath}`, {env});
 	} else if (url)
-		getSchemaBuffer = () => exec('node', [require.resolve('./fetchSchema'), url]);
+		getSchemaBuffer = () => exec(`node ${require.resolve('./fetchSchema')} ${url}`);
 	else
 		throw new Error(chalk.red('Relay requires a url to your graphql server\n') +
       'Specifiy this in a ' + chalk.cyan('GRAPHQL_URL') + ' or ' + chalk.cyan('GRAPHQL_PATH') + ' environment variable.');
@@ -49,12 +50,17 @@ var fetchSchema = () => {
 }
 
 function fetchRelaySchemaDevPlugin() {
+	if (process.env.GRAPHQL_CYCLE_BLOCK)
+		return {
+			visitor: {},
+		};
+
 	var PluginBuilder = () => {
 		var cache = null;
 		var cacheTime = 0;
 		return () => {
 			var TTL = process.env.GRAPHQL_SCHEMA_CACHE_TTL;
-			if (Date.now() - cacheTime > TTL) {
+			if (!cache || (TTL !== undefined && Date.now() - cacheTime > TTL)) {
 				cache = getBabelRelayPlugin(fetchSchema().data).apply(null, arguments);
 				cacheTime = Date.now();
 			}
@@ -76,7 +82,4 @@ function fetchRelaySchemaDevPlugin() {
 	};
 };
 
-module.exports = process.env.GRAPHQL_SCHEMA_CACHE_TTL
-	? fetchRelaySchemaDevPlugin
-	: getBabelRelayPlugin(fetchSchema().data)
-;
+module.exports = fetchRelaySchemaDevPlugin;

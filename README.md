@@ -11,7 +11,7 @@ For example:
 ``GRAPHQL_URL=http://localhost:8000/graphql node start``
 
 ### Via GRAPHQL_PATH
-Set the path to the file containing the graphql schema. This file must export ES5. **WARNING** Don't transpile your schema with a .babelrc file that contains this plugin! It will create a cyclic dependency and lock up the node process, without giving any helpful errors.
+Set the path to the file containing the graphql schema. This file must export ES5. This plugin will bail when there is a cycle in the dependencies – that is, if GRAPHQL_PATH=schema.js, you can transform schema.js and its dependencies without creating an infinite dependency loop.
 
 For example:  
 
@@ -25,11 +25,7 @@ export default new GraphQLSchema({
 });
 
 /* schema.js */
-require('babel-polyfill');
-
-// this can't reference a .babelrc file that contains fetch-relay-schema
 require('babel-core/register');
-
 Object.assign(exports, require('./schema.babel'));
 ```
 
@@ -41,11 +37,10 @@ I suggest using the URL if you don't have a good reason to use the path. I use p
 
 ## Options
 
-### Schema cache time to live (experimental)
-You can set the environment variable GRAPHQL\_SCHEMA\_CACHE\_TTL to the number of milliseconds the schema cache should stay. Only do this in development mode, as it will slow down builds. Note that this relies on implementation details of getBabelRelayPlugin and may potentially break when the plugin is updated.
+### Schema cache time to live
+You can set the environment variable GRAPHQL\_SCHEMA\_CACHE\_TTL to the number of milliseconds the schema cache should stay. Only do this in development mode, as it will slow down builds.
 
 GRAPHQL\_SCHEMA\_CACHE\_TTL applies to both GRAPHQL\_URL and GRAPHQL\_PATH usages.
 
 # TODO
 * Implement a retry mechanism for querying the schema - right now failures will just break it!
-* Detect cycles in GRAPHQL_PATH and throw instead of locking the process

@@ -1,6 +1,6 @@
 {
   "name": "babel-plugin-fetch-relay-schema",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "Fetch relay schema from a URL.",
   "main": "src/index.js",
   "repository": {
@@ -8,11 +8,22 @@
     "type": "git"
   },
   "scripts": {
-    "generate": "node src/generateSchema",
-    "index": "node src"
+    "test-fetch": "GRAPHQL_URL=http://localhost:8000/graphql jest",
+    "test-generate": "GRAPHQL_PATH=./test/schema.entry jest",
+    "test-generate-cyclic": "GRAPHQL_PATH=./test/schemaCyclic.entry jest",
+    "test": "npm run test-fetch && npm run test-generate && npm run test-generate-cyclic",
+    "validate": "npm run test"
   },
   "author": "Chris Bala",
   "license": "MIT",
+  "devDependencies": {
+    "babel-core": "^6.21.0",
+    "babel-preset-es2015": "^6.18.0",
+    "babel-preset-stage-0": "^6.16.0",
+    "babel-relay-plugin": "^0.10.0",
+    "graphql": "<1.0.0",
+    "jest": "^18.1.0"
+  },
   "dependencies": {
     "chalk": "^1.1.3",
     "node-fetch": "^1.6.3"
