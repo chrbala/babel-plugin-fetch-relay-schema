@@ -41,6 +41,3 @@ I suggest using the URL if you don't have a good reason to use the path. I use p
 You can set the environment variable GRAPHQL\_SCHEMA\_CACHE\_TTL to the number of milliseconds the schema cache should stay. Only do this in development mode, as it will slow down builds.
 
 GRAPHQL\_SCHEMA\_CACHE\_TTL applies to both GRAPHQL\_URL and GRAPHQL\_PATH usages.
-
-# TODO
-* Implement a retry mechanism for querying the schema - right now failures will just break it!

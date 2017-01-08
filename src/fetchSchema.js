@@ -3,9 +3,14 @@ var graphQlutilities = require('graphql/utilities');
 
 var url = process.argv[2];
 
+const errors = [];
+
 const TIMEOUT_MS = 30000;
 var timeout = setTimeout(() => {
-	console.error('Fetch timed out.');
+	if (!errors.length)
+		console.error('Fetch timed out.');
+	else
+		console.error(`Attempted to fetch ${errors.length} times and failed with the message ${errors[errors.length - 1]}`);
 	process.exit(1);
 }, TIMEOUT_MS);
 
@@ -19,12 +24,9 @@ var success = response =>
 		.then(json => console.log(JSON.stringify(json)))
 		.then(() => clearTimeout(timeout))
 ;
-var error = err => {
-	console.error(err.message);
-	process.exit(1);
-}
 
-fetch(url, {
+(function attemptFetch() {
+	fetch(url, {
     method: 'POST',
     headers: {
       'Accept': 'application/json',
@@ -34,5 +36,8 @@ fetch(url, {
   })
 	.then(checkSuccess)
 	.then(success)
-	.catch(error)
-;
+	.catch(err => {
+		errors.push(err.message);
+		setTimeout(attemptFetch, 5000);
+	})
+})();
